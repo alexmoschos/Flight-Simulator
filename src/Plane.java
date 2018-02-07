@@ -6,10 +6,11 @@ public class Plane {
     private int maxHeight;
     private int elevationSpeed;
     private int consumption;
-
-    public Plane(int x, int y, int startSpeed, int maxSpeed, int fuel, int maxHeight, int elevationSpeed, int consumption) {
+    public double orientation;
+    public Plane(int x, int y, double orientation, int startSpeed, int maxSpeed, int fuel, int maxHeight, int elevationSpeed, int consumption) {
         this.x = x;
         this.y = y;
+        this.orientation = orientation;
         this.startSpeed = startSpeed;
         this.maxSpeed = maxSpeed;
         this.fuel = fuel;

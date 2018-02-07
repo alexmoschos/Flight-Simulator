@@ -2,6 +2,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import javax.swing.JFrame;
@@ -11,6 +12,7 @@ public class Map extends JPanel {
 
     private BufferedImage canvas;
     public ArrayList<Plane> planes = new ArrayList<>();
+    public ArrayList<Airport> airports = new ArrayList<Airport>();
     public BufferedImage planeImage;
     public Map(int width, int height) {
         canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
@@ -27,8 +29,11 @@ public class Map extends JPanel {
         Graphics2D g2 = (Graphics2D) g;
         g2.drawImage(canvas, null, null);
         for(Plane plane : planes) {
-            System.out.println(1);
-            g2.drawImage(planeImage, plane.x, plane.y, null);
+            AffineTransform at = new AffineTransform();
+            at.translate(plane.x,plane.y);
+            at.rotate(plane.orientation);
+            //System.out.println(plane.orientation);
+            g2.drawImage(planeImage,at,null);
         }
     }
 

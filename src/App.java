@@ -27,8 +27,8 @@ public class App extends JFrame {
             e.printStackTrace();
         }
         map.planeImage = plane;
-        map.planes.add(new Jet(1, 2));
-        map.planes.add(new Jet(42, 17));
+        map.planes.add(new Jet(1, 2, 5.0 * Math.PI / 4.0));
+        map.planes.add(new Jet(42, 17, 3.0 * Math.PI / 4.0));
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -36,7 +36,7 @@ public class App extends JFrame {
                 map.planes.get(0).y++;
                 map.repaint();
             }
-        }, 20, 20);
+        }, 20, 35);
 
     }
 
