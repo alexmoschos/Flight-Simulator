@@ -55,7 +55,7 @@ public class App extends JFrame {
     }
 
     private void createUIComponents() {
-        mapPanel = new Map(960, 480);
+        mapPanel = new Map(960, 480, new File("input/world_default.txt"));
         topLabel = new JLabel("Label");
         sideBar = new Sidebar();
         //sideBar.setSize(420, 420);

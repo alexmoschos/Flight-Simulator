@@ -1,9 +1,30 @@
+import java.awt.image.BufferedImage;
+
 public class Airport {
     private int id;
     private AirportCategory category;
     private boolean isOpen;
     private int x,y;
 
+    public BufferedImage getAirportImage() {
+        return airportImage;
+    }
+
+    public Airport(int id, AirportCategory category, boolean isOpen, int x, int y, BufferedImage airportImage, Direction direction) {
+        this.id = id;
+        this.category = category;
+        this.isOpen = isOpen;
+        this.x = x;
+        this.y = y;
+        this.airportImage = airportImage;
+        this.direction = direction;
+    }
+
+    public void setAirportImage(BufferedImage airportImage) {
+        this.airportImage = airportImage;
+    }
+
+    private BufferedImage airportImage;
     public int getX() {
         return x;
     }
