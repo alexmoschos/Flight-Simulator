@@ -24,10 +24,10 @@ public class Map extends JPanel {
             while ((text = reader.readLine()) != null) {
                 String[] values = text.split(",");
                 for(String x : values){
-                    System.out.println(i.toString() + "," + j.toString());
+                    //System.out.println(i.toString() + "," + j.toString());
                     drawRect(translate(Integer.parseInt(x)),j,i,16,16);
                     //canvas.setRGB(j, i, Integer.parseInt(x));
-                    j+=16;
+                    j+=16
                 }
                 i+=16;
                 j = 0;
@@ -54,7 +54,6 @@ public class Map extends JPanel {
     public Map(int width, int height) {
         canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         fillCanvas(Color.BLUE);
-        drawRect(Color.RED, 0, 0, width/2, height/2);
     }
 
     public Dimension getPreferredSize() {
@@ -67,10 +66,14 @@ public class Map extends JPanel {
         g2.drawImage(canvas, null, null);
         for(Plane plane : planes) {
             AffineTransform at = new AffineTransform();
-            at.translate(plane.x,plane.y);
+            at.translate(16*(plane.y)-plane.planeImage.getWidth()/2 + 8,16*plane.x-plane.planeImage.getHeight()/2 + 8);
             at.rotate(plane.orientation);
-            //System.out.println(plane.orientation);
-            g2.drawImage(planeImage,at,null);
+            g2.drawImage(plane.planeImage,at,null);
+        }
+        for(Airport air : airports){
+            AffineTransform at = new AffineTransform();
+            at.translate(16*air.getY()-air.getAirportImage().getWidth()/2 + 8 ,16*air.getX()-air.getAirportImage().getHeight()/2 + 8);
+            g2.drawImage(air.getAirportImage(),at,null);
         }
     }
 
@@ -88,8 +91,8 @@ public class Map extends JPanel {
         if(c <= 200) return new Color(60,179,113);
         if(c <= 400) return new Color(46,139,87);
         if(c <= 700) return new Color(34,139,34);
-        if(c<=1500) return new Color(222,184,135);
-        if(c <= 3500) return new Color(205,133,64);
+        if(c <= 1500) return new Color(222,184,135);
+        if(c <= 3500) return new Color(205,133,63);
         return new Color(145,80 ,20);
     }
     public void drawRect(Color c, int x1, int y1, int width, int height) {

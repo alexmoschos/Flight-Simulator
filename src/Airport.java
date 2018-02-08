@@ -2,16 +2,14 @@ import java.awt.image.BufferedImage;
 
 public class Airport {
     private int id;
+    private String name;
     private AirportCategory category;
     private boolean isOpen;
     private int x,y;
 
-    public BufferedImage getAirportImage() {
-        return airportImage;
-    }
-
-    public Airport(int id, AirportCategory category, boolean isOpen, int x, int y, BufferedImage airportImage, Direction direction) {
+    public Airport(int id, String name, AirportCategory category, boolean isOpen, int x, int y, BufferedImage airportImage, Direction direction) {
         this.id = id;
+        this.name = name;
         this.category = category;
         this.isOpen = isOpen;
         this.x = x;
@@ -19,6 +17,19 @@ public class Airport {
         this.airportImage = airportImage;
         this.direction = direction;
     }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public BufferedImage getAirportImage() {
+        return airportImage;
+    }
+
 
     public void setAirportImage(BufferedImage airportImage) {
         this.airportImage = airportImage;
@@ -76,9 +87,9 @@ public class Airport {
     private Direction direction;
     public enum Direction {
         NORTH,
+        EAST,
         SOUTH,
-        WEST,
-        EAST
+        WEST
     }
     public enum AirportCategory {
         ONE,

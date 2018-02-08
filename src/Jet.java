@@ -1,5 +1,23 @@
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
 public class Jet extends Plane{
-    public Jet(int x, int y, double orientation) {
-        super(x, y, orientation,140, 280, 16000, 28000, 2300, 15);
+    static BufferedImage JetImage;
+
+    static {
+        try {
+            JetImage = ImageIO.read(new File("icons/big_n.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Couldn't find jet image file");
+            System.exit(1);
+        }
+    }
+
+    public Jet(int id, int time, int startAirport, int endAirport, String flightName, int speed, int height, int fuel) {
+        super(Jet.JetImage,0,0,140,280,16000,28000,2300,15,
+                0.0, id,time,startAirport,endAirport,flightName,speed,height,fuel);
     }
 }
