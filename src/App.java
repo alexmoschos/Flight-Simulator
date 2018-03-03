@@ -21,7 +21,6 @@ public class App extends JFrame {
         File airportFile = new File("input/airports_default.txt");
         BufferedReader reader = null;
         BufferedImage airportImage = null;
-        HashMap<Integer, Airport> airportHashMap = new HashMap<>();
         try {
             reader = new BufferedReader(new FileReader(airportFile));
             String text = null;
@@ -35,13 +34,12 @@ public class App extends JFrame {
                 int orientation = Integer.parseInt(values[4]);
                 int type = Integer.parseInt(values[5]);
                 boolean isOpen;
-                if (Integer.parseInt(values[6]) == 0) isOpen = true;
-                else isOpen = false;
+                if (Integer.parseInt(values[6]) == 0) isOpen = false;
+                else isOpen = true;
                 if (airportImage == null)
                     airportImage = ImageIO.read(new File("icons/airport.png"));
 
                 Airport air = new Airport(id, name, Airport.AirportCategory.values()[type - 1], isOpen, x, y, airportImage, Airport.Direction.values()[orientation - 1]);
-                airportHashMap.put(id, air);
                 map.airports.add(air);
 
             }
@@ -88,14 +86,16 @@ public class App extends JFrame {
                         n = new Jet(id, time, startAirport, endAirport, flightName, speed, height, fuel);
                         break;
                     default:
-                        System.out.println("Couldnt understand the plane type");
+                        System.out.println("Couldn't understand the plane type");
                 }
-                Airport air = airportHashMap.get(startAirport);
-                n.x = air.getX();
-                n.y = air.getY();
+                //Airport air = airportHashMap.get(startAirport);
+                //n.x = air.getX();
+                //n.y = air.getY();
                 //n.orientation = air.getDirection().ordinal();
-
-                map.planes.add(n);
+                if (n.verify(map.airports))
+                    map.planes.add(n);
+                else
+                    System.out.println("not valid plane\n");
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -110,28 +110,16 @@ public class App extends JFrame {
                 e.printStackTrace();
             }
         }
-        while (true)
-            map.repaint();
+        for (Plane plane : map.planes) {
+            plane.calculatePath(map.airports);
+        }
+//      while (true)
+//            map.repaint();
 //
-//        Timer timer = new Timer();
-//        BufferedImage plane = null;
-//        try {
-//            plane = ImageIO.read(new File("/home/alexm/plane.png"));
-//        } catch (IOException e) {
-//            System.out.println("Couldnt find the plane file");
-//            e.printStackTrace();
-//        }
-//        map.planeImage = plane;
-//        map.planes.add(new Jet(1, 2, 5.0 * Math.PI / 4.0));
-//        map.planes.add(new Jet(42, 17, 3.0 * Math.PI / 4.0));
-//        timer.schedule(new TimerTask() {
-//            @Override
-//            public void run() {
-//                map.planes.get(0).x++;
-//                map.planes.get(0).y++;
-//                map.repaint();
-//            }
-//        }, 20, 35);
+
+        for (Plane plane : map.planes) {
+            plane.startTimer(map);
+        }
 
     }
 

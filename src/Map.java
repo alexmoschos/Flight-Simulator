@@ -27,7 +27,7 @@ public class Map extends JPanel {
                     //System.out.println(i.toString() + "," + j.toString());
                     drawRect(translate(Integer.parseInt(x)),j,i,16,16);
                     //canvas.setRGB(j, i, Integer.parseInt(x));
-                    j+=16
+                    j+=16;
                 }
                 i+=16;
                 j = 0;
@@ -67,7 +67,7 @@ public class Map extends JPanel {
         for(Plane plane : planes) {
             AffineTransform at = new AffineTransform();
             at.translate(16*(plane.y)-plane.planeImage.getWidth()/2 + 8,16*plane.x-plane.planeImage.getHeight()/2 + 8);
-            at.rotate(plane.orientation);
+            at.rotate(plane.orientation,plane.planeImage.getWidth()/2,plane.planeImage.getHeight()/2);
             g2.drawImage(plane.planeImage,at,null);
         }
         for(Airport air : airports){
