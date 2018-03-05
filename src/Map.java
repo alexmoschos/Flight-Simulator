@@ -6,12 +6,20 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.List;
-import javax.swing.JFrame;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.JPanel;
 
 public class Map extends JPanel {
-    public Map(int width, int height,File input) {
+    public int heights[][] = new int[30][60];
+    public final AtomicInteger crashed = new AtomicInteger();
+    public final AtomicInteger landed = new AtomicInteger();
+    public boolean draw = true;
+    public boolean change = false;
+
+    public void updateMap(int width, int height,File input) {
+        change = true;
+        crashed.set(0);
+        landed.set(0);
         canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         fillCanvas(Color.BLUE);
         BufferedReader reader = null;
@@ -20,19 +28,74 @@ public class Map extends JPanel {
         try {
             reader = new BufferedReader(new FileReader(input));
             String text = null;
-
+            int zi = 0;
+            int zj = 0;
             while ((text = reader.readLine()) != null) {
                 String[] values = text.split(",");
                 for(String x : values){
                     //System.out.println(i.toString() + "," + j.toString());
                     drawRect(translate(Integer.parseInt(x)),j,i,16,16);
+                    heights[zi][zj] = Integer.parseInt(x);
                     //canvas.setRGB(j, i, Integer.parseInt(x));
                     j+=16;
+                    zj++;
                 }
                 i+=16;
+                zi++;
+                zj=0;
                 j = 0;
             }
         } catch (FileNotFoundException e) {
+            System.out.println("World File not found");
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (reader != null) {
+                    reader.close();
+                }
+            } catch (IOException e) {
+
+            }
+        }
+        for(Plane plane : planes){
+            plane.timer.cancel();
+        }
+        planes =  new ArrayList<>();
+        airports = new ArrayList<>();
+        change = false;
+    }
+    public Map(int width, int height,File input) {
+        crashed.set(0);
+        landed.set(0);
+        canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        fillCanvas(Color.BLUE);
+        BufferedReader reader = null;
+        Integer i = 0;
+        Integer j = 0;
+        try {
+            reader = new BufferedReader(new FileReader(input));
+            String text = null;
+            int zi = 0;
+            int zj = 0;
+            while ((text = reader.readLine()) != null) {
+                String[] values = text.split(",");
+                for(String x : values){
+                    //System.out.println(i.toString() + "," + j.toString());
+                    drawRect(translate(Integer.parseInt(x)),j,i,16,16);
+                    heights[zi][zj] = Integer.parseInt(x);
+                    //canvas.setRGB(j, i, Integer.parseInt(x));
+                    j+=16;
+                    zj++;
+                }
+                i+=16;
+                zi++;
+                zj=0;
+                j = 0;
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("World File not found");
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
@@ -44,12 +107,13 @@ public class Map extends JPanel {
             } catch (IOException e) {
             }
         }
+        planes =  new ArrayList<>();
+        airports = new ArrayList<>();
 
     }
-
     private BufferedImage canvas;
-    public ArrayList<Plane> planes = new ArrayList<>();
-    public ArrayList<Airport> airports = new ArrayList<Airport>();
+    public ArrayList<Plane> planes;
+    public ArrayList<Airport> airports;
     public BufferedImage planeImage;
     public Map(int width, int height) {
         canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
@@ -64,17 +128,18 @@ public class Map extends JPanel {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
         g2.drawImage(canvas, null, null);
-        for(Plane plane : planes) {
+        for (Plane plane : planes) {
             AffineTransform at = new AffineTransform();
-            at.translate(16*(plane.y)-plane.planeImage.getWidth()/2 + 8,16*plane.x-plane.planeImage.getHeight()/2 + 8);
-            at.rotate(plane.orientation,plane.planeImage.getWidth()/2,plane.planeImage.getHeight()/2);
-            g2.drawImage(plane.planeImage,at,null);
+            at.translate(16 * (plane.y) - plane.planeImage.getWidth() / 2 + 8, 16 * plane.x - plane.planeImage.getHeight() / 2 + 8);
+            at.rotate(plane.orientation, plane.planeImage.getWidth() / 2, plane.planeImage.getHeight() / 2);
+            g2.drawImage(plane.planeImage, at, null);
         }
-        for(Airport air : airports){
+        for (Airport air : airports) {
             AffineTransform at = new AffineTransform();
-            at.translate(16*air.getY()-air.getAirportImage().getWidth()/2 + 8 ,16*air.getX()-air.getAirportImage().getHeight()/2 + 8);
-            g2.drawImage(air.getAirportImage(),at,null);
+            at.translate(16 * air.getY() - air.getAirportImage().getWidth() / 2 + 8, 16 * air.getX() - air.getAirportImage().getHeight() / 2 + 8);
+            g2.drawImage(air.getAirportImage(), at, null);
         }
+
     }
 
     public void fillCanvas(Color c) {

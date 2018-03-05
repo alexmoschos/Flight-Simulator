@@ -3,16 +3,16 @@ import java.util.Objects;
 
 public class Position {
     int x,y,height;
-
-    public Position(int x, int y, int height) {
-        this.x = x;
-        this.y = y;
-        this.height = height;
-    }
+    double priority;
 
     public Position(int x, int y) {
         this.x = x;
         this.y = y;
+    }
+    public Position(int x, int y,double priority) {
+        this.x = x;
+        this.y = y;
+        this.priority = priority;
     }
     @Override
     public String toString() {
@@ -36,18 +36,17 @@ public class Position {
 
     public ArrayList<Position> neighbors() {
         ArrayList<Position> result = new ArrayList<>();
-        if(x < 30) result.add(new Position(x+1,y));
-        if(x < 30 && y < 60) result.add(new Position(x+1,y+1));
+        if(x < 30) result.add(new Position(x+1,y,priority + 1));
+        if(x < 30 && y < 60) result.add(new Position(x+1,y+1,priority+Math.sqrt(2)));
 
-        if(y < 60) result.add(new Position(x,y+1));
-        if(x > 0 && y < 60) result.add(new Position(x-1,y+1));
+        if(y < 60) result.add(new Position(x,y+1,priority + 1));
+        if(x > 0 && y < 60) result.add(new Position(x-1,y+1,priority+Math.sqrt(2)));
 
-        if(x > 0) result.add(new Position(x-1,y));
-        if(x > 0 && y > 0) result.add(new Position(x-1,y-1));
+        if(x > 0) result.add(new Position(x-1,y,priority + 1));
+        if(x > 0 && y > 0) result.add(new Position(x-1,y-1,priority+Math.sqrt(2)));
 
-        if(y > 0) result.add(new Position(x,y-1));
-        if(x < 30 && y > 0) result.add(new Position(x-1,y+1));
-
+        if(y > 0) result.add(new Position(x,y-1,priority + 1));
+        if(x < 30 && y > 0) result.add(new Position(x+1,y-1,priority+Math.sqrt(2)));
 
         return result;
     }

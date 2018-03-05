@@ -1,10 +1,12 @@
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.HashMap;
-import java.util.Timer;
+import java.text.DecimalFormat;
 import java.util.TimerTask;
 
 
@@ -12,13 +14,24 @@ public class App extends JFrame {
     private JPanel panel1;
     private Map mapPanel;
     private JLabel topLabel;
-    private JPanel sideBar;
+    private Sidebar sideBar;
+    private JMenuBar menubar;
+    private String airportFile;
+    private String mapFile;
+    private String flightFile;
 
     public static void main(String[] args) {
         App frame = new App();
+        frame.createMenuBar();
+
         frame.setVisible(true);
+    }
+
+    public void start() {
+        App frame = this;
         Map map = frame.getMap();
-        File airportFile = new File("input/airports_default.txt");
+        System.out.println("Hello zzz");
+        File airportFile = new File(this.airportFile);
         BufferedReader reader = null;
         BufferedImage airportImage = null;
         try {
@@ -38,7 +51,6 @@ public class App extends JFrame {
                 else isOpen = true;
                 if (airportImage == null)
                     airportImage = ImageIO.read(new File("icons/airport.png"));
-
                 Airport air = new Airport(id, name, Airport.AirportCategory.values()[type - 1], isOpen, x, y, airportImage, Airport.Direction.values()[orientation - 1]);
                 map.airports.add(air);
 
@@ -56,8 +68,8 @@ public class App extends JFrame {
                 e.printStackTrace();
             }
         }
-
-        File planeFile = new File("input/flights_default.txt");
+        sideBar.addText("Airports loaded");
+        File planeFile = new File(flightFile);
         reader = null;
         try {
             reader = new BufferedReader(new FileReader(planeFile));
@@ -94,11 +106,11 @@ public class App extends JFrame {
                 //n.orientation = air.getDirection().ordinal();
                 if (n.verify(map.airports))
                     map.planes.add(n);
-                else
-                    System.out.println("not valid plane\n");
             }
         } catch (FileNotFoundException e) {
+            System.out.println("Flight file not found");
             e.printStackTrace();
+            System.exit(1);
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -110,16 +122,40 @@ public class App extends JFrame {
                 e.printStackTrace();
             }
         }
+        sideBar.addText("Flights loaded");
+
+
         for (Plane plane : map.planes) {
             plane.calculatePath(map.airports);
         }
-//      while (true)
-//            map.repaint();
-//
 
         for (Plane plane : map.planes) {
-            plane.startTimer(map);
+            plane.startTimer(map, (long) (plane.time / 5.0 * 1000), (long) (10.0 / plane.getStartSpeed() * 60 / 5 * 1000), sideBar);
         }
+        java.util.Timer t = new java.util.Timer();
+        t.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                updateLabel();
+            }
+        }, 0, 200);
+        while (!map.change) {
+            //System.out.println("hello world");
+            for (Plane plane : map.planes) {
+                for (Plane secondPlane : map.planes) {
+                    if (plane != secondPlane) {
+                        if (plane.x == secondPlane.x && plane.y == secondPlane.y && Math.abs(plane.currHeight - secondPlane.currHeight) < 500) {
+                            //System.out.println("Let me know");
+                            plane.crash(map, sideBar);
+                            secondPlane.crash(map, sideBar);
+                            //sideBar.addText("Collision" + plane.id + " " + secondPlane.id);
+                            //frame.updateLabel();
+                        }
+                    }
+                }
+            }
+        }
+        t.cancel();
 
     }
 
@@ -128,19 +164,177 @@ public class App extends JFrame {
     }
 
     public App() {
+        airportFile = "input/airports_default.txt";
+        mapFile = "input/world_default.txt";
+        flightFile = "input/flights_default.txt";
         $$$setupUI$$$();
         setTitle("MediaLab flight simulation");
         setSize(1100, 522);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setJMenuBar(menubar);
         add(panel1);
-        topLabel.setText("Simulated Time: 0 ");
+        updateLabel();
 
     }
 
+    long start = System.currentTimeMillis();
+
+    public void updateLabel() {
+        String result = "Simulated Time: ";
+        DecimalFormat df = new DecimalFormat("0.00");
+        result += df.format((System.currentTimeMillis() - start) / (60 * 1000F));
+        result += "              ";
+        result += "Total Aircrafts: ";
+        result += Integer.toString(mapPanel.planes.size());
+        result += "              ";
+        result += "Total Landed: ";
+        result += Integer.toString(mapPanel.landed.get());
+        result += "              ";
+        result += "Total Crashes: ";
+        result += Integer.toString(mapPanel.crashed.get());
+        topLabel.setText(result);
+    }
+
+    private void createMenuBar() {
+        JMenu file = new JMenu("Game");
+        App a = this;
+        JMenuItem start = new JMenuItem("Start");
+        start.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                mapPanel.updateMap(960, 480, new File(mapFile));
+                // System.out.println("Hello world");
+                sideBar.addText("Simulation starting");
+                Thread t = new Thread() {
+                    public void run() {
+                        a.start();
+                    }
+                };
+                t.start();
+            }
+        });
+
+        JMenuItem stop = new JMenuItem("Stop");
+        stop.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                sideBar.addText("Simulation stopped");
+                cancelTimers();
+            }
+        });
+        // a.start();
+        JMenuItem load = new JMenuItem("Load");
+        load.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                String id = JOptionPane.showInputDialog("Which Map ID should I load?");
+                airportFile = "input/airports_" + id + ".txt";
+                mapFile = "input/world_" + id + ".txt";
+                flightFile = "input/flights_" + id + ".txt";
+                mapPanel.updateMap(960, 480, new File(mapFile));
+                sideBar.addText("Loaded " + id);
+
+            }
+        });
+
+
+        JMenuItem end = new JMenuItem("Exit");
+        end.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                sideBar.addText("Bye");
+                System.exit(0);
+            }
+        });
+        file.add(start);
+        file.add(stop);
+        file.add(load);
+        file.add(end);
+        menubar.add(file);
+
+        JMenu sim = new JMenu("Simulation");
+        JMenuItem airports = new JMenuItem("Airports");
+        airports.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                String result = "";
+                for (Airport air : mapPanel.airports) {
+                    result += Integer.toString(air.getId()) + " ";
+                    result += air.getName() + " ";
+                    result += air.getCategory().ordinal() + " ";
+                    result += air.getDirection().toString() + " ";
+                    result += air.isOpen();
+                    result += "\n";
+                }
+                JOptionPane.showMessageDialog(null, result);
+            }
+        });
+        JMenuItem aircrafts = new JMenuItem("Aircrafts");
+        aircrafts.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                //System.out.println("Hello");
+                String result = "";
+                for (Plane plane : mapPanel.planes) {
+                    if (!plane.crashed) {
+                        Airport s = mapPanel.airports.get(plane.startAirport - 1);
+                        Airport e = mapPanel.airports.get(plane.endAirport - 1);
+                        result += Integer.toString(plane.id) + " from ";
+                        result += s.getName() + " to ";
+                        result += e.getName() + " ";
+                        result += plane.fuel + " ";
+                        result += plane.speed;
+                        result += "\n";
+                    }
+                }
+                JOptionPane.showMessageDialog(null, result);
+            }
+        });
+        JMenuItem flights = new JMenuItem("Flights");
+        flights.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                //System.out.println("Hello");
+                String result = "";
+                for (Plane plane : mapPanel.planes) {
+                    if (!plane.crashed) {
+                        result += "NOT CRASHED ";
+                    } else {
+                        result += "CRASHED ";
+                    }
+                    Airport s = mapPanel.airports.get(plane.startAirport - 1);
+                    Airport e = mapPanel.airports.get(plane.endAirport - 1);
+                    result += Integer.toString(plane.id) + " from ";
+                    result += s.getName() + " to ";
+                    result += e.getName() + " ";
+                    result += plane.fuel + " ";
+                    result += plane.speed;
+                    result += "\n";
+
+                }
+                JOptionPane.showMessageDialog(null, result);
+            }
+        });
+        sim.add(airports);
+        sim.add(aircrafts);
+        sim.add(flights);
+        menubar.add(sim);
+    }
+
+    private void cancelTimers() {
+        Map map = getMap();
+        for (Plane plane : map.planes) {
+            plane.timer.cancel();
+        }
+    }
+
+
     private void createUIComponents() {
-        mapPanel = new Map(960, 480, new File("input/world_default.txt"));
+        mapPanel = new Map(960, 480, new File(mapFile));
         topLabel = new JLabel("Label");
-        sideBar = new Sidebar();
+        sideBar = new Sidebar(mapPanel);
+        menubar = new JMenuBar();
+        //createMenuBar();
         //sideBar.setSize(420, 420);
         // TODO: place custom component creation code here
     }

@@ -83,7 +83,19 @@ public class Airport {
     public void setDirection(Direction direction) {
         this.direction = direction;
     }
-
+    public Position approach(){
+        switch (direction){
+            case NORTH:
+                return new Position(x+1,y);
+            case EAST:
+                return new Position(x,y+1);
+            case SOUTH:
+                return new Position(x-1,y);
+            case WEST:
+                return new Position(x,y-1);
+        }
+        return null;
+    }
     private Direction direction;
     public enum Direction {
         NORTH,

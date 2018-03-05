@@ -2,6 +2,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class SingleEngine extends Plane{
     static BufferedImage SingleEngineImage;
@@ -18,5 +19,15 @@ public class SingleEngine extends Plane{
     public SingleEngine(int id, int time, int startAirport, int endAirport, String flightName, int speed, int height, int fuel) {
         super(SingleEngine.SingleEngineImage,0,0,60,110,280,8000, 700,3,
                 0.0, id,time,startAirport,endAirport,flightName,speed,height,fuel);
+    }
+    @Override
+    boolean verify(ArrayList<Airport> airports) {
+        Airport s = airports.get(startAirport-1);
+        Airport e = airports.get(endAirport-1);
+//        System.out.println(s.getCategory().toString());
+//        System.out.println(e.getCategory().toString());
+        boolean st = s.getCategory() == Airport.AirportCategory.ONE || s.getCategory() == Airport.AirportCategory.THREE;
+        boolean en = e.getCategory() == Airport.AirportCategory.ONE || e.getCategory() == Airport.AirportCategory.THREE;
+        return super.verify(airports) && st && en;
     }
 }

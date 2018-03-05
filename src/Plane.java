@@ -22,6 +22,8 @@ public class Plane {
     int fuel;
     ArrayList<Position> path;
     int i;
+    int currHeight;
+    boolean crashed;
     public Plane(BufferedImage plane,int x, int y, int startSpeed, int maxSpeed, int maxFuel, int maxHeight, int elevationSpeed,
                  int consumption, double orientation, int id, int time, int startAirport, int endAirport,
                  String flightName, int speed, int height, int fuel) {
@@ -44,11 +46,13 @@ public class Plane {
         this.height = height;
         this.fuel = fuel;
         this.path = new ArrayList<>();
-        i = 0;
+        this.i = 0;
+        this.currHeight = 0;
+        this.crashed = false;
     }
     boolean verify(ArrayList<Airport> airports){
         try {
-            return height <= maxHeight && startSpeed <= maxSpeed && fuel <= maxFuel && airports.get(startAirport-1).isOpen() && airports.get(endAirport-1).isOpen();
+            return height <= maxHeight && speed <= maxSpeed && fuel <= maxFuel && airports.get(startAirport-1).isOpen() && airports.get(endAirport-1).isOpen();
         } catch (ArrayIndexOutOfBoundsException e){
             //System.out.println(startAirport);
             return false;
@@ -56,7 +60,13 @@ public class Plane {
     }
     void calculatePath(ArrayList<Airport> airports) {
         Position current = null;
-        Queue<Position> frontier = new LinkedList<>();
+        PriorityQueue<Position> frontier = new PriorityQueue<>(1, new Comparator<Position>() {
+            @Override
+            public int compare(Position position, Position t1) {
+                if(position.priority > t1.priority) return 1;
+                else return -1;
+            }
+        });
         HashSet<Position> visited = new HashSet<>();
         HashMap<Position, Position> cameFrom = new HashMap<>();
         Airport startAir = airports.get(startAirport-1);
@@ -64,16 +74,16 @@ public class Plane {
         x = startAir.getX();
         y = startAir.getY();
         Airport endAir = airports.get(endAirport-1);
-        Position end = new Position(endAir.getX(),endAir.getY(),0);
-        frontier.add(start);
-        visited.add(start);
-        Position zz = new Position(startAir.getX(),startAir.getY());
-        System.out.println(zz.hashCode());
-        System.out.println(start.hashCode());
+        Position end = endAir.approach();
+        frontier.add(startAir.approach());
+        visited.add(startAir.approach());
+;
 
         while(!frontier.isEmpty()) {
-            System.out.println(frontier.size());
+            //System.out.println(frontier.size());
+            //Scanner scan = new Scanner(System.in);
             current = frontier.remove();
+            //System.out.println(current.toString());
             if(current.equals(end)){
                 break;
             }
@@ -85,57 +95,100 @@ public class Plane {
                 }
             }
         }
+        path.add(new Position(endAir.getX(),endAir.getY()));
         while(current != cameFrom.get(current)){
             path.add(current);
             current = cameFrom.get(current);
         }
-        for(Position x : path){
-            System.out.println(x.toString());
-        }
+        path.add(new Position(startAir.getX(),startAir.getY()));
+
         Collections.reverse(path);
     }
-    private boolean updatePosition(){
+    private boolean updatePosition(Map map) throws CrashedException, SpeedLimitException {
         try {
             Position current = path.get(i++);
             if(x > current.x && y > current.y){
-                orientation = 3.0*Math.PI/4 ;
+                orientation = 7.0*Math.PI/4 ;
             }
             if(x > current.x && y < current.y){
-                orientation = 3/4;
+                orientation = 1.0*Math.PI/4;
             }
             if(x < current.x && y > current.y){
-                orientation = 3/4;
+                orientation = 5.0*Math.PI/4;
+            }
+            if(x < current.x && y < current.y){
+                orientation = 3.0*Math.PI/4;
             }
             if(x == current.x && y > current.y){
-                orientation = 0.0;
+                orientation = 3.0*Math.PI/2;
             }
             if(x == current.x && y < current.y){
-                orientation = 1.0*Math.PI;
-            }
-            if(x < current.x && y == current.y){
                 orientation = 1.0*Math.PI/2;
             }
+            if(x < current.x && y == current.y){
+                orientation = 1.0*Math.PI;
+            }
             if(x > current.x && y == current.y){
-                orientation = 3.0*Math.PI/2;
+                orientation = 0;
             }
 
             x = current.x;
             y = current.y;
+            fuel -= consumption * 20;
+            if(currHeight < height) {
+                // System.out.println(currHeight);
+                currHeight += elevationSpeed;
+            }
+            if(currHeight > height){
+                currHeight = height;
+            }
+            if(fuel < 0){
+                throw new CrashedException(id);
+            }
+            if(i == 2)
+                throw new SpeedLimitException(id);
+            if(currHeight < map.heights[x][y]){
+                System.out.println("I crashed due to height");
+                throw new CrashedException(id);
+            }
             return true;
         } catch(IndexOutOfBoundsException e){
             return false;
         }
     }
-    public void startTimer(Map map){
-        Timer timer = new Timer();
 
+    public int getStartSpeed() {
+        return startSpeed;
+    }
+    Timer timer;
+    public void startTimer(Map map, long delay, long period,Sidebar sidebar){
+        timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                System.out.println("Hello world");
-                if (!updatePosition()) timer.cancel();
+                try {
+                    if (!updatePosition(map)) {
+                        map.landed.incrementAndGet();
+                        sidebar.addText("Landed: " + id);
+                        timer.cancel();
+                    }
+                } catch (CrashedException e){
+                    crash(map,sidebar);
+                } catch (SpeedLimitException e){
+                    timer.cancel();
+                    startTimer(map,(long) (20.0/speed * 60 / 5 * 1000 ),(long) (20.0/speed * 60 / 5 * 1000 ),sidebar);
+                }
                 map.repaint();
             }
-        }, 200, 350);
+        }, delay, period);
+    }
+
+    public void crash(Map map, Sidebar sidebar) {
+        if(!crashed) {
+            map.crashed.incrementAndGet();
+            crashed = true;
+            sidebar.addText("Crash: " + id);
+        }
+        timer.cancel();
     }
 }
