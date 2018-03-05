@@ -84,6 +84,8 @@ public class Airport {
         this.direction = direction;
     }
     public Position approach(){
+        // approach will return the position from which the plane will have to come to land correctly
+        // and the position the plane will take off from
         switch (direction){
             case NORTH:
                 return new Position(x+1,y);

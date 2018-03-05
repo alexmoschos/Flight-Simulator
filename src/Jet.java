@@ -23,7 +23,8 @@ public class Jet extends Plane{
     }
 
     @Override
-    boolean verify(ArrayList<Airport> airports) {
+    public boolean verify(ArrayList<Airport> airports) {
+        //call super.verify and also check categories
         Airport s = airports.get(startAirport-1);
         Airport e = airports.get(endAirport-1);
 //        System.out.println(s.getCategory().toString());

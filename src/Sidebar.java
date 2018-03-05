@@ -16,11 +16,6 @@ public class Sidebar extends JPanel{
     public Sidebar(Map map) {
         oldText = "";
         pane = new JLabel();
-//        addText("HELLO WORLD");
-//        addText("HELLO WORLD");
-//        addText("HELLO WORLD");
-
-
         setBackground(Color.WHITE);
         add(pane);
     }

@@ -21,7 +21,8 @@ public class TurboProp extends Plane {
                 0.0, id, time, startAirport, endAirport, flightName, speed, height, fuel);
     }
     @Override
-    boolean verify(ArrayList<Airport> airports) { ;
+    public boolean verify(ArrayList<Airport> airports) {
+        //call super.verify and also check categories
         Airport s = airports.get(startAirport-1);
         Airport e = airports.get(endAirport-1);
         boolean st = s.getCategory() == Airport.AirportCategory.TWO || s.getCategory() == Airport.AirportCategory.THREE;

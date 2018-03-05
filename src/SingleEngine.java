@@ -21,11 +21,10 @@ public class SingleEngine extends Plane{
                 0.0, id,time,startAirport,endAirport,flightName,speed,height,fuel);
     }
     @Override
-    boolean verify(ArrayList<Airport> airports) {
+    public boolean verify(ArrayList<Airport> airports) {
+        //call super.verify and also check categories
         Airport s = airports.get(startAirport-1);
         Airport e = airports.get(endAirport-1);
-//        System.out.println(s.getCategory().toString());
-//        System.out.println(e.getCategory().toString());
         boolean st = s.getCategory() == Airport.AirportCategory.ONE || s.getCategory() == Airport.AirportCategory.THREE;
         boolean en = e.getCategory() == Airport.AirportCategory.ONE || e.getCategory() == Airport.AirportCategory.THREE;
         return super.verify(airports) && st && en;

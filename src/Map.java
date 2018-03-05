@@ -11,9 +11,9 @@ import javax.swing.JPanel;
 
 public class Map extends JPanel {
     public int heights[][] = new int[30][60];
+    //crashed and landed should be atomic to avoid race conditions
     public final AtomicInteger crashed = new AtomicInteger();
     public final AtomicInteger landed = new AtomicInteger();
-    public boolean draw = true;
     public boolean change = false;
 
     public void updateMap(int width, int height,File input) {

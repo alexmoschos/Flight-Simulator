@@ -179,6 +179,8 @@ public class App extends JFrame {
 
     long start = System.currentTimeMillis();
 
+
+    //updateLabel will update the info for the top bar
     public void updateLabel() {
         String result = "Simulated Time: ";
         DecimalFormat df = new DecimalFormat("0.00");
@@ -194,7 +196,7 @@ public class App extends JFrame {
         result += Integer.toString(mapPanel.crashed.get());
         topLabel.setText(result);
     }
-
+    //createMenuBar will create the right listeners for the buttons at the top
     private void createMenuBar() {
         JMenu file = new JMenu("Game");
         App a = this;
@@ -205,6 +207,7 @@ public class App extends JFrame {
                 mapPanel.updateMap(960, 480, new File(mapFile));
                 // System.out.println("Hello world");
                 sideBar.addText("Simulation starting");
+                //start it in a new thread to avoid delays in UI Thread
                 Thread t = new Thread() {
                     public void run() {
                         a.start();
